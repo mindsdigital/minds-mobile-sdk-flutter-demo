@@ -1,0 +1,1 @@
+enum MindsPredictionResponse { match, different }

@@ -1,3 +1,7 @@
+plugins {
+    id "com.google.cloud.artifactregistry.gradle-plugin" version "2.1.5"
+}
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
@@ -25,6 +29,14 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
+repositories {
+    google()
+    mavenCentral()
+    maven {
+        url "artifactregistry://us-east1-maven.pkg.dev/minds-digital-238513/mobile-sdk-android"
+    }
+}
+
 android {
     compileSdkVersion flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
@@ -47,7 +59,7 @@ android {
         applicationId "com.example.minds_mobile_sdk_flutter_demo"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdkVersion flutter.minSdkVersion
+        minSdkVersion 21
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
@@ -60,6 +72,11 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+
+    buildFeatures {
+        viewBinding true
+        dataBinding true
+    }
 }
 
 flutter {
@@ -68,4 +85,8 @@ flutter {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'digital.minds.clients.sdk.android:release:1.17.2'
+    implementation 'digital.minds.clients.sdk.kotlin.core:release:1.0.13'
 }
+
+apply plugin: 'com.google.cloud.artifactregistry.gradle-plugin'

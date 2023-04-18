@@ -1,0 +1,1 @@
+enum ProcessType { authentication, enrollment }
