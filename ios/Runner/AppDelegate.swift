@@ -66,14 +66,29 @@ import AVFAudio
                 do {
                     throw error
                 } catch DomainError.invalidCPF(let message) {
-                    print("\(message ?? "")")
+                    self.flutterResult?(FlutterError(code: "invalid_cpf", message: message, details: nil))
+                } catch DomainError.invalidPhoneNumber(let message) {
+                    self.flutterResult?(FlutterError(code: "invalid_phone_number", message: message, details: nil))
+                } catch DomainError.customerNotFoundToPerformVerification(let message) {
+                    self.flutterResult?(FlutterError(code: "customer_not_found", message: message, details: nil))
+                } catch DomainError.customerNotEnrolled(let message) {
+                    self.flutterResult?(FlutterError(code: "customer_not_enrolled", message: message, details: nil))
+                } catch DomainError.customerNotCertified(let message) {
+                    self.flutterResult?(FlutterError(code: "customer_not_certified", message: message, details: nil))
+                } catch DomainError.invalidToken {
+                    self.flutterResult?(FlutterError(code: "invalid_token", message: "Invalid Token", details: nil))
+                } catch DomainError.undefinedEnvironment {
+                    self.flutterResult?(FlutterError(code: "undefined_environment", message: "No environment defined", details: nil))
+                } catch DomainError.internalServerException {
+                    self.flutterResult?(FlutterError(code: "internal_server_error", message: "Internal server error", details: nil))
                 } catch {
                     print("\(error): \(error.localizedDescription)")
+                    self.flutterResult?(FlutterError(code: "ERROR:", message: error.localizedDescription, details: nil))
                 }
-                self.flutterResult?(FlutterError(code: "ERROR:", message: error.localizedDescription, details: nil))
             }
         }
     }
+
     
     private func biometricsReceive(_ response: BiometricResponse) {
         let json: [String: Any?] = [

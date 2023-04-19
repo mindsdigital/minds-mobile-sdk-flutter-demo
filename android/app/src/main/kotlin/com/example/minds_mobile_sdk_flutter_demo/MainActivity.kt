@@ -5,6 +5,7 @@ import androidx.annotation.NonNull
 import digital.minds.clients.sdk.android.MindsDigital
 import digital.minds.clients.sdk.kotlin.data.model.VoiceMatchResponse
 import digital.minds.clients.sdk.kotlin.domain.constants.VOICE_MATCH_RESPONSE
+import digital.minds.clients.sdk.kotlin.domain.exceptions.*
 import digital.minds.clients.sdk.kotlin.main.MindsSDK
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -41,22 +42,52 @@ class MainActivity : FlutterActivity() {
                                     val intent =
                                         MindsDigital.getIntent(context, authenticationMindsSDK)
                                     startActivityForResult(intent, 0)
+                                } catch (e: InvalidCPF) {
+                                    result.error("invalid_cpf", e.message, null)
+                                } catch (e: InvalidPhoneNumber) {
+                                    result.error("invalid_phone_number", e.message, null)
+                                } catch (e: CustomerNotFoundToPerformVerification) {
+                                    result.error("customer_not_found", e.message, null)
+                                } catch (e: CustomerNotEnrolled) {
+                                    result.error("customer_not_enrolled", e.message, null)
+                                } catch (e: CustomerNotCertified) {
+                                    result.error("customer_not_certified", e.message, null)
+                                } catch (e: InvalidToken) {
+                                    result.error("invalid_token", e.message, null)
+                                } catch (e: InternalServerException) {
+                                    result.error("internal_server_error", e.message, null)
                                 } catch (e: Exception) {
                                     result.error("MINDS_SDK_INIT_ERROR", e.message, null)
                                 }
                             }
                         }
+
                         "enrollment" -> {
                             enrollmentMindsSDK = MindsConfig.enrollment(cpf!!, token!!, telephone!!)
                             CoroutineScope(Dispatchers.Main).launch {
                                 try {
                                     val intent = MindsDigital.getIntent(context, enrollmentMindsSDK)
                                     startActivityForResult(intent, 0)
+                                } catch (e: InvalidCPF) {
+                                    result.error("invalid_cpf", e.message, null)
+                                } catch (e: InvalidPhoneNumber) {
+                                    result.error("invalid_phone_number", e.message, null)
+                                } catch (e: CustomerNotFoundToPerformVerification) {
+                                    result.error("customer_not_found", e.message, null)
+                                } catch (e: CustomerNotEnrolled) {
+                                    result.error("customer_not_enrolled", e.message, null)
+                                } catch (e: CustomerNotCertified) {
+                                    result.error("customer_not_certified", e.message, null)
+                                } catch (e: InvalidToken) {
+                                    result.error("invalid_token", e.message, null)
+                                } catch (e: InternalServerException) {
+                                    result.error("internal_server_error", e.message, null)
                                 } catch (e: Exception) {
                                     result.error("MINDS_SDK_INIT_ERROR", e.message, null)
                                 }
                             }
                         }
+
                         else -> result.notImplemented()
                     }
                 } catch (e: Exception) {
