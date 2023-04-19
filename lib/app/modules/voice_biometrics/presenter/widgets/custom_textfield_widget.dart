@@ -27,6 +27,7 @@ class CustomTextfieldWidget extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(left: 30, right: 30),
       child: TextFormField(
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         controller: controller,
         enabled: enabled,
         decoration: InputDecoration(

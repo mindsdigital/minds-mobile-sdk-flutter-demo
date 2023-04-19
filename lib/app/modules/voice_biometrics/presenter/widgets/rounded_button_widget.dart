@@ -8,6 +8,8 @@ class RoundedButtonWidget extends StatelessWidget {
   final Color? foregroundColor;
   final VoidCallback? onPressed;
   final bool enabled;
+  final bool noPadding;
+  final IconData? icon;
 
   const RoundedButtonWidget({
     Key? key,
@@ -16,6 +18,8 @@ class RoundedButtonWidget extends StatelessWidget {
     this.textColor,
     this.foregroundColor,
     this.enabled = true,
+    this.noPadding = false,
+    this.icon,
     required this.onPressed,
   }) : super(key: key);
 
@@ -24,6 +28,8 @@ class RoundedButtonWidget extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.enabled = true,
+    this.noPadding = false,
+    this.icon,
   })  : backgroundColor = MindsColors.blue,
         textColor = null,
         foregroundColor = null,
@@ -33,7 +39,9 @@ class RoundedButtonWidget extends StatelessWidget {
     Key? key,
     required this.label,
     required this.onPressed,
+    this.noPadding = false,
     this.enabled = true,
+    this.icon,
   })  : foregroundColor = Colors.white,
         backgroundColor = MindsColors.green,
         textColor = Colors.white,
@@ -42,7 +50,7 @@ class RoundedButtonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+      padding: !noPadding ? const EdgeInsets.symmetric(horizontal: 32) : null,
       width: MediaQuery.of(context).size.width,
       child: TextButton(
         onPressed: onPressed,
@@ -51,8 +59,17 @@ class RoundedButtonWidget extends StatelessWidget {
           foregroundColor: foregroundColor,
           shape: const StadiumBorder(),
         ),
-        child: Text(label,
-            style: TextStyle(color: textColor, fontWeight: FontWeight.w700)),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            icon != null ? Icon(icon) : Container(),
+            if (icon != null) const SizedBox(width: 10),
+            Text(label,
+                style:
+                    TextStyle(color: textColor, fontWeight: FontWeight.w700)),
+          ],
+        ),
       ),
     );
   }

@@ -42,6 +42,15 @@ class _VoiceBiometricsPageState extends State<VoiceBiometricsPage> {
       if (event.state is SuccessState) {
         CustomModalWidget(mindsResponse: event.mindsResponse).show(context);
       }
+
+      if (event.state is FailureState) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text((event.state as FailureState).message),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     });
   }
 
@@ -119,7 +128,13 @@ class _VoiceBiometricsPageState extends State<VoiceBiometricsPage> {
                     const SizedBox(height: 20),
                     RoundedButtonWidget.green(
                       label: "Cadastro por voz",
-                      onPressed: state.state is! LoadingState ? () {} : null,
+                      onPressed: state.state is! LoadingState
+                          ? () async {
+                              if (_formKey.currentState!.validate()) {
+                                await requestSDK(ProcessType.enrollment);
+                              }
+                            }
+                          : null,
                     ),
                     RoundedButtonWidget.blue(
                       label: "Autenticação por voz",
@@ -145,7 +160,7 @@ class _VoiceBiometricsPageState extends State<VoiceBiometricsPage> {
 
   Future<void> requestSDK(ProcessType processType) async {
     if (await Permission.microphone.request().isGranted) {
-      await store.callSDK();
+      await store.callSDK(processType);
     }
   }
 }

@@ -11,14 +11,14 @@ class VoiceBiometricsStore extends Cubit<VoiceBiometricsState> {
   VoiceBiometricsStore(this._callVoiceProcessSDKUsecase)
       : super(const VoiceBiometricsState());
 
-  Future<void> callSDK() async {
+  Future<void> callSDK(ProcessType processType) async {
     emit(state.copyWith(
       state: const LoadingState(),
       mindsResponse: const MindsResponse.empty(),
     ));
     final response = await _callVoiceProcessSDKUsecase(
       data: state.request,
-      processType: ProcessType.authentication,
+      processType: processType,
     );
     response.fold(
       (failure) {

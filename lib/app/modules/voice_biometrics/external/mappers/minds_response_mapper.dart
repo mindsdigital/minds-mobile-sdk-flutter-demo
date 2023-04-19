@@ -19,35 +19,4 @@ class MindsResponseMapper {
       details: DetailsSdkMapper().fromOnject(map['details']),
     );
   }
-
-  Map<String, dynamic> to(MindsResponse entity) {
-    return {
-      "success": entity.success,
-      "error": {
-        "code": entity.error?.code,
-        "description": entity.error?.description,
-      },
-      "id": entity.id,
-      "cpf": entity.cpf,
-      "external_id": entity.externalId,
-      "created_at": entity.createdAt,
-      "result": {
-        "recommended_action": entity.result?.recommendedaAction,
-        "reasons": entity.result?.reasons ?? [],
-      },
-      "details": {
-        "flag": {
-          "id": entity.details?.flag?.id,
-          "type": entity.details?.flag?.type,
-          "description": entity.details?.flag?.description,
-          "status": entity.details?.flag?.status,
-        },
-        "voice_match": {
-          "result": entity.details?.voiceMatch?.result,
-          "confidence": entity.details?.voiceMatch?.confidence,
-          "status": entity.details?.voiceMatch?.status,
-        },
-      },
-    };
-  }
 }

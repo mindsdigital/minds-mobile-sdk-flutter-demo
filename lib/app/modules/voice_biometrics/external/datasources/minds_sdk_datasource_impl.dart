@@ -1,5 +1,5 @@
 import 'package:flutter/services.dart';
-import '../../../../core/domain/constants/method_channel_sdk.dart';
+import '../../../../core/enternal/constants/method_channel_sdk.dart';
 import '../../../../core/domain/helpers/errors/datasource_failure.dart';
 import '../../../../core/domain/helpers/errors/failure.dart';
 import '../../domain/entites/minds_method_channel_request.dart';

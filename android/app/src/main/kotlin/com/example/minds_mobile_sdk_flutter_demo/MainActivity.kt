@@ -37,15 +37,24 @@ class MainActivity : FlutterActivity() {
                             authenticationMindsSDK =
                                 MindsConfig.authentication(cpf!!, token!!, telephone!!)
                             CoroutineScope(Dispatchers.Main).launch {
-                                val intent = MindsDigital.getIntent(context, authenticationMindsSDK)
-                                startActivityForResult(intent, 0)
+                                try {
+                                    val intent =
+                                        MindsDigital.getIntent(context, authenticationMindsSDK)
+                                    startActivityForResult(intent, 0)
+                                } catch (e: Exception) {
+                                    result.error("MINDS_SDK_INIT_ERROR", e.message, null)
+                                }
                             }
                         }
                         "enrollment" -> {
                             enrollmentMindsSDK = MindsConfig.enrollment(cpf!!, token!!, telephone!!)
                             CoroutineScope(Dispatchers.Main).launch {
-                                val intent = MindsDigital.getIntent(context, enrollmentMindsSDK)
-                                startActivityForResult(intent, 0)
+                                try {
+                                    val intent = MindsDigital.getIntent(context, enrollmentMindsSDK)
+                                    startActivityForResult(intent, 0)
+                                } catch (e: Exception) {
+                                    result.error("MINDS_SDK_INIT_ERROR", e.message, null)
+                                }
                             }
                         }
                         else -> result.notImplemented()

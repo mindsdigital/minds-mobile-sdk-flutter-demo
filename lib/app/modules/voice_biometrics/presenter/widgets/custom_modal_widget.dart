@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'rounded_button_widget.dart';
 import '../../../../core/presenter/theme/assets_paths.dart';
 import '../../../../core/presenter/theme/minds_colors.dart';
 import '../../domain/entites/minds_response.dart';
@@ -31,7 +33,7 @@ class CustomModalWidget extends StatelessWidget {
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.90,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.fromLTRB(32, 32, 32, 8),
         child: ListView(
           physics: const BouncingScrollPhysics(),
           shrinkWrap: false,
@@ -69,22 +71,46 @@ class CustomModalWidget extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Container(
-              decoration: const BoxDecoration(
-                color: MindsColors.greyLight,
-                borderRadius: BorderRadius.all(Radius.circular(25)),
+              decoration: BoxDecoration(
+                color: MindsColors.greyLight.withOpacity(0.6),
+                borderRadius: const BorderRadius.all(Radius.circular(25)),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Text(
-                  prettyJsonString,
-                  style: GoogleFonts.inconsolata(
-                    fontSize: 16,
-                    color: MindsColors.green,
-                    fontWeight: FontWeight.w600,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(32, 32, 32, 16),
+                    child: Text(
+                      prettyJsonString,
+                      style: GoogleFonts.inconsolata(
+                        fontSize: 16,
+                        color: MindsColors.green,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
-                ),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: SizedBox(),
+                      ),
+                      Flexible(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                          child: RoundedButtonWidget(
+                            icon: Icons.copy,
+                            noPadding: true,
+                            backgroundColor: MindsColors.blue,
+                            label: "Copiar",
+                            onPressed: () => Clipboard.setData(
+                                ClipboardData(text: prettyJsonString)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            )
+            ),
           ],
         ),
       ),
