@@ -1,5 +1,5 @@
 class MindsTokenManager {
   const MindsTokenManager._();
 
-  static String get token => "ry";
+  static String get token => "";
 }
