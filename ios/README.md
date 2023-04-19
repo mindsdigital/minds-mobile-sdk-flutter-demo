@@ -75,7 +75,7 @@ private func startSDK(processType: MindsSDK.ProcessType, cpf: String, token: Str
             } catch {
                 print("\(error): \(error.localizedDescription)")
             }
-            self.flutterResult?(nil)
+            self.flutterResult?(FlutterError(code: "ERROR:", message: error.localizedDescription, details: nil))
         }
     }
 }
