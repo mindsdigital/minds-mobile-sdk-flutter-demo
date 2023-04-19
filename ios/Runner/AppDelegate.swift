@@ -70,7 +70,7 @@ import AVFAudio
                 } catch {
                     print("\(error): \(error.localizedDescription)")
                 }
-                self.flutterResult?(nil)
+                self.flutterResult?(FlutterError(code: "ERROR:", message: error.localizedDescription, details: nil))
             }
         }
     }
