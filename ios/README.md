@@ -2,219 +2,142 @@
 
 # Configuração do Projeto
 
-# Adicionando o plugin do Google Artifact Registry:
 
-Para adicionar o plugin Gradle que permite a integração do projeto com o Google Artifact Registry, inclua a seguinte linha no arquivo `build.gradle`:
+Para integrar a SDK da Minds no seu projeto iOS, é necessário seguir os seguintes passos:
 
-```gradle
-plugins {
-    id "com.google.cloud.artifactregistry.gradle-plugin" version "2.1.5"
-}
-```
-Certifique-se de especificar a versão mais recente do plugin compatível com o seu projeto.
+- Abra o seu projeto no Xcode e selecione o target do seu aplicativo.
+- Clique na aba "Swift Packages" na parte superior da janela.
+- Clique no botão "+" no canto inferior esquerdo da janela para adicionar um pacote.
+- Na caixa de diálogo que aparece, cole a URL do repositório da SDK da Minds: https://github.com/mindsdigital/minds-sdk-mobile-ios.git
+- Certifique-se de que o destino esteja selecionado corretamente e clique em "Finish".
+- Aguarde a importação da SDK ser concluída.
 
-Essa etapa é importante para que o Gradle possa buscar e baixar as dependências necessárias para o projeto no Google Artifact Registry.
+# Criar AppDelegate
 
-# Adicionando um repositório Maven
+Importe o SDK no seu projeto. Na classe AppDelegate, importe o SDK adicionando a linha abaixo:
 
-Para adicionar um repositório Maven no Gradle, inclua a seguinte linha no arquivo `build.gradle`:
-
-```gradle
-repositories {
-    google()
-    mavenCentral()
-    maven {
-        url "artifactregistry://us-east1-maven.pkg.dev/minds-digital-238513/mobile-sdk-android"
-    }
-}
+```swift
+import MindsSDK
 ```
 
-Certifique-se de especificar a URL correta do repositório Maven que você deseja adicionar.
+Crie um canal de comunicação (`Method Channel`). Na mesma classe `AppDelegate`, adicione o seguinte trecho de código:
 
-Essa etapa é importante para que o Gradle possa buscar e baixar as dependências necessárias para o projeto no repositório Maven especificado.
+```swift
+let controller = window.rootViewController as! FlutterViewController
+let mindsChannel = FlutterMethodChannel(name: "digital.minds", binaryMessenger: controller.binaryMessenger)
 
-# Habilitando as funcionalidades de binding:
-
-Para habilitar as funcionalidades de binding de views e binding de dados do Android no projeto, inclua as seguintes linhas no arquivo `build.gradle`:
-
-```gradle
-android {
-    buildFeatures {
-        viewBinding true
-        dataBinding true
-    }
-}
-```
-
-# Adicionando dependências:
-
-Para adicionar as dependências necessárias para o projeto, inclua as seguintes linhas no arquivo `build.gradle`:
-
-```gradle
-dependencies {
-    implementation 'digital.minds.clients.sdk.android:release:1.17.2'
-    implementation 'digital.minds.clients.sdk.kotlin.core:release:1.0.13'
-}
-```
-
-## Aplicando o plugin:
-
-Para aplicar o plugin do Google Artifact Registry ao projeto, inclua a seguinte linha no arquivo `build.gradle`:
-
-
-```gradle
-apply plugin: 'com.google.cloud.artifactregistry.gradle-plugin'
-```
-Essa etapa é importante para que o Gradle possa buscar e baixar as dependências necessárias para o projeto no Google Artifact Registry.
-
-
-# Configuração da Classe Minds Config
-
-A classe MindsConfig é responsável por configurar a SDK para a operação de autenticação ou cadastro de biometria, dependendo do método escolhido.
-
-Os métodos `enrollment` e `authentication` criam um objeto `MindsSDK` com as configurações necessárias para cada operação, incluindo o CPF do usuário, o token de acesso, o telefone do usuário e outras informações relevantes.
-
-```kotlin
-import digital.minds.clients.sdk.kotlin.domain.helpers.Environment
-import digital.minds.clients.sdk.kotlin.domain.helpers.ProcessType
-import digital.minds.clients.sdk.kotlin.main.MindsSDK
-
-class MindsConfig {
-    companion object {
-        fun enrollment(cpf: String, token: String, telephone: String): MindsSDK {
-            return MindsSDK
-                .Builder()
-                .setToken(token)
-                .setCPF(cpf)
-                .setEnvironment(Environment.SANDBOX)
-                .setExternalID(null)
-                .setPhoneNumber(telephone)
-                .setProcessType(ProcessType.ENROLLMENT)
-                .setExternalCustomerId(null)
-                .setShowDetails(true)
-                .build()
+mindsChannel.setMethodCallHandler({
+    [weak self] (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
+    self?.flutterResult = result
+    let args = call.arguments as? Dictionary<String, Any>
+    
+    switch(call.method){
+    case "authentication", "enrollment":
+        guard let args = call.arguments as? [String: Any],
+              let cpf = args["cpf"] as? String,
+              let token = args["token"] as? String,
+              let telephone = args["telephone"] as? String else {
+            result(FlutterError(code: "INVALID_ARGUMENTS", message: "Missing required arguments", details: nil))
+            return
         }
-
-        fun authentication(cpf: String, token: String, telephone: String): MindsSDK {
-            return MindsSDK
-                .Builder()
-                .setToken(token)
-                .setCPF(cpf)
-                .setEnvironment(Environment.SANDBOX)
-                .setExternalID(null)
-                .setPhoneNumber(telephone)
-                .setProcessType(ProcessType.AUTHENTICATION)
-                .setExternalCustomerId(null)
-                .setShowDetails(true)
-                .build()
-        }
+        self?.startSDK(processType: call.method == "authentication" ? .authentication : .enrollment, cpf: cpf, token: token, telephone: telephone, externalId: nil, externalCustomerId: nil)
+        
+    default:
+        result(FlutterMethodNotImplemented)
+        return
     }
-}
+})
 ```
 
-O objeto `MindsSDK` retornado por esses métodos é passado para a SDK através do método `MindsDigital.getIntent()`, que é responsável por iniciar a operação na SDK
+## Inicialize o SDK com as configurações necessárias. Ainda na classe `AppDelegate`, adicione o método `startSDK` abaixo:
 
 
-# Configuração do Method Channel
-
-Primeiramente, é necessário criar uma instância do MethodChannel que será utilizado para se comunicar com a aplicação Flutter. O nome do canal de comunicação é "digital.minds".
-
-```kotlin
-private val channel = "digital.minds"
-```
-
-Em seguida, é criada uma instância das classes `enrollmentMindsSDK` e `authenticationMindsSDK`, que serão utilizadas para realizar as operações de cadastro e autenticação de usuários, respectivamente. Além disso, é criada uma variável `_result` do tipo `MethodChannel.Result`, que será utilizada para retornar o resultado das operações ao Flutter.
-
-```kotlin
-private lateinit var enrollmentMindsSDK: MindsSDK
-private lateinit var authenticationMindsSDK: MindsSDK
-private lateinit var _result: MethodChannel.Result
-```
-O método `configureFlutterEngine` é sobrescrito para configurar a `FlutterEngine`. Nele, é criado um `MethodChannel` e um `MethodCallHandler` para receber chamadas de métodos do Flutter.
-
-```kotlin
-override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
-    super.configureFlutterEngine(flutterEngine)
-    MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channel)
-        .setMethodCallHandler { call: MethodCall, result: MethodChannel.Result ->
-            // código do handler
-        }
-}
-```
-
-Dentro do `MethodCallHandler`, é verificado qual método foi chamado pelo Flutter e é feita a chamada à SDK correspondente. É utilizado o `CoroutineScope` para realizar a chamada de forma assíncrona, e o resultado é retornado ao Flutter através da variável `_result`.
-
-```kotlin
-when (call.method) {
-    "authentication" -> {
-        authenticationMindsSDK =
-            MindsConfig.authentication(cpf!!, token!!, telephone!!)
-        CoroutineScope(Dispatchers.Main).launch {
-            try {
-                val intent =
-                    MindsDigital.getIntent(context, authenticationMindsSDK)
-                startActivityForResult(intent, 0)
-            } catch (e: Exception) {
-                result.error("MINDS_SDK_INIT_ERROR", e.message, null)
+```swift
+private func startSDK(processType: MindsSDK.ProcessType, cpf: String, token: String, telephone: String, externalId: String?, externalCustomerId: String?) {
+    guard let navigationController: UINavigationController = navigationController else { return }
+    
+    sdk = MindsSDK(delegate: self)
+    sdk?.setToken(token)
+    sdk?.setExternalId(externalId)
+    sdk?.setExternalCustomerId(externalCustomerId)
+    sdk?.setPhoneNumber(telephone)
+    sdk?.setShowDetails(true)
+    sdk?.setCpf(cpf)
+    sdk?.setProcessType(processType)
+    sdk?.setEnvironment(.sandbox)
+    
+    sdk?.initialize(on: navigationController) { error in
+        if let error = error {
+            do {
+                throw error
+            } catch DomainError.invalidCPF(let message) {
+                print("\(message ?? "")")
+            } catch {
+                print("\(error): \(error.localizedDescription)")
             }
+            self.flutterResult?(nil)
         }
     }
-    "enrollment" -> {
-        enrollmentMindsSDK = MindsConfig.enrollment(cpf!!, token!!, telephone!!)
-        CoroutineScope(Dispatchers.Main).launch {
-            try {
-                val intent = MindsDigital.getIntent(context, enrollmentMindsSDK)
-                startActivityForResult(intent, 0)
-            } catch (e: Exception) {
-                result.error("MINDS_SDK_INIT_ERROR", e.message, null)
-            }
-        }
-    }
-    else -> result.notImplemented()
 }
 ```
+## Implemente o protocolo MindsSDKDelegate para lidar com as respostas do SDK.
 
-Quando a operação é concluída na SDK, é chamado o método `onActivityResult`, que retorna o resultado ao Flutter através da variável `_result`.
-
-```kotlin
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode != Activity.RESULT_OK || data == null) return
-        val mindsSDKResponse = data.extras?.get(VOICE_MATCH_RESPONSE) as? VoiceMatchResponse
-        val jsonObject = JSONObject().apply {
-            put("success", mindsSDKResponse?.success)
-            put("error", JSONObject().apply {
-                put("code", mindsSDKResponse?.error?.code)
-                put("description", mindsSDKResponse?.error?.description)
-            })
-            put("id", mindsSDKResponse?.id)
-            put("cpf", mindsSDKResponse?.cpf)
-            put("external_id", mindsSDKResponse?.external_id)
-            put("created_at", mindsSDKResponse?.created_at)
-            put("result", JSONObject().apply {
-                put("recommended_action", mindsSDKResponse?.result?.recommended_action)
-                put("reasons", JSONArray(mindsSDKResponse?.result?.reasons))
-            })
-            put("details", JSONObject().apply {
-                put("flag", JSONObject().apply {
-                    put("id", mindsSDKResponse?.details?.flag?.id)
-                    put("type", mindsSDKResponse?.details?.flag?.type)
-                    put("description", mindsSDKResponse?.details?.flag?.description)
-                    put("status", mindsSDKResponse?.details?.flag?.status)
-                })
-                put("voice_match", JSONObject().apply {
-                    put("result", mindsSDKResponse?.details?.voice_match?.result)
-                    put("confidence", mindsSDKResponse?.details?.voice_match?.confidence)
-                    put("status", mindsSDKResponse?.details?.voice_match?.status)
-                })
-                put("antispoofing", JSONObject().apply {
-                    put("result", mindsSDKResponse?.details?.antispoofing?.result)
-                    put("status", mindsSDKResponse?.details?.antispoofing?.status)
-                })
-            })
+```swift
+    private func biometricsReceive(_ response: BiometricResponse) {
+        let json: [String: Any?] = [
+            "success": response.success,
+            "error": [
+                "code": response.error?.code,
+                "description": response.error?.description
+            ],
+            "id": response.id,
+            "cpf": response.cpf,
+            "external_id": response.externalID,
+            "created_at": response.createdAt,
+            "result": [
+                "recommended_action": response.result?.recommendedAction as Any,
+                "reasons": response.result?.reasons as Any
+            ],
+            "details": [
+                "flag": [
+                    "id": response.details?.flag?.id as Any ,
+                    "type": response.details?.flag?.type as Any,
+                    "description": response.details?.flag?.description as Any,
+                    "status": response.details?.flag?.status as Any
+                ],
+                "voice_match": [
+                    "result": response.details?.voiceMatch?.result as Any,
+                    "confidence": response.details?.voiceMatch?.confidence as Any,
+                    "status": response.details?.voiceMatch?.status as Any
+                ]
+            ]
+        ]
+        if let jsonData = try? JSONSerialization.data(withJSONObject: json),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            print(jsonString)
+            flutterResult?(jsonString)
         }
-        val jsonString = jsonObject.toString()
-        _result.success(jsonString)
+    }
+    
+}
+
+extension AppDelegate: MindsSDKDelegate {
+    func showMicrophonePermissionPrompt() {
+        AVAudioSession.sharedInstance().requestRecordPermission { granted in
+            print("granted: \(granted)")
+        }
+    }
+    
+    func microphonePermissionNotGranted() {
+        print("microphonePermissionNotGranted")
+    }
+    
+    func onSuccess(_ response: BiometricResponse) {
+        self.biometricsReceive(response)
+    }
+    
+    func onError(_ response: BiometricResponse) {
+        self.biometricsReceive(response)
     }
 }
 ```
@@ -242,22 +165,49 @@ Future<void> _authentication(String cpf, String token, String telephone) async {
 
 É importante ressaltar que o integrador deve garantir que a permissão do microfone seja fornecida em seu aplicativo Flutter antes de utilizar a SDK. Sem essa permissão, a SDK não funcionará corretamente. É responsabilidade do integrador garantir que seu aplicativo tenha as permissões necessárias para utilizar a SDK com sucesso.
 
+Adicione permissão ao seu arquivo `Info.plist`.
 
-## 🛠️ Corrigir possíveis problemas 
-
-Em caso de erro "What went wrong: Execution failed for task `:app:processDebugMainManifest` , você deve adicionar a tag "tools:replace" com o valor "android:label" dentro da tag <application> no arquivo AndroidManifest.xml do seu projeto. 
-
-Esse erro ocorre porque há um conflito no arquivo AndroidManifest.xml, especificamente com a tag <application>. O atributo application@label está presente tanto no arquivo AndroidManifest.xml do projeto quanto no arquivo AndroidManifest.xml da SDK da Minds.
-
-O código deve ficar assim:
-
-```dart
-<application
-    tools:replace="android:label">
-</application>
+```xml
+<key>NSMicrophoneUsageDescription</key>
+<string>Descrição do uso do microfone</string>
 ```
 
-Dessa forma, o atributo label do arquivo da SDK será substituído pelo atributo label do seu projeto. Essa configuração permitirá que o erro seja resolvido.
+Adicione também a permissão a seu arquivo PodFile:
+
+<details>
+<summary>Podfile</summary>
+
+```ruby
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+    # Start of the permission_handler configuration
+    target.build_configurations.each do |config|
+
+      # You can enable the permissions needed here. For example to enable camera
+      # permission, just remove the `#` character in front so it looks like this:
+      #
+      # ## dart: PermissionGroup.camera
+      # 'PERMISSION_CAMERA=1'
+      #
+      #  Preprocessor definitions can be found in: https://github.com/Baseflow/flutter-permission-handler/blob/master/permission_handler_apple/ios/Classes/PermissionHandlerEnums.h
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+        '$(inherited)',
+
+        ## dart: PermissionGroup.microphone
+        'PERMISSION_MICROPHONE=1',
+
+      ]
+
+    end 
+    # End of the permission_handler configuration
+  end
+end
+```
+
+</details>
+
+
 
 
 
