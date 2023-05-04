@@ -207,10 +207,6 @@ Quando a operação é concluída na SDK, é chamado o método `onActivityResult
                     put("confidence", mindsSDKResponse?.details?.voice_match?.confidence)
                     put("status", mindsSDKResponse?.details?.voice_match?.status)
                 })
-                put("antispoofing", JSONObject().apply {
-                    put("result", mindsSDKResponse?.details?.antispoofing?.result)
-                    put("status", mindsSDKResponse?.details?.antispoofing?.status)
-                })
             })
         }
         val jsonString = jsonObject.toString()
