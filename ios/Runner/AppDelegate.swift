@@ -90,32 +90,32 @@ import AVFAudio
     }
 
     
-    private func biometricsReceive(_ response: BiometricResponse) {
+    private func biometricsReceive(_ response: BiometricResponse?) {
         let json: [String: Any?] = [
-            "success": response.success,
+            "success": response?.success,
             "error": [
-                "code": response.error?.code,
-                "description": response.error?.description
+                "code": response?.error?.code,
+                "description": response?.error?.description
             ],
-            "id": response.id,
-            "cpf": response.cpf,
-            "external_id": response.externalID,
-            "created_at": response.createdAt,
+            "id": response?.id,
+            "cpf": response?.cpf,
+            "external_id": response?.externalID,
+            "created_at": response?.createdAt,
             "result": [
-                "recommended_action": response.result?.recommendedAction as Any,
-                "reasons": response.result?.reasons as Any
+                "recommended_action": response?.result?.recommendedAction as Any,
+                "reasons": response?.result?.reasons as Any
             ],
             "details": [
                 "flag": [
-                    "id": response.details?.flag?.id as Any ,
-                    "type": response.details?.flag?.type as Any,
-                    "description": response.details?.flag?.description as Any,
-                    "status": response.details?.flag?.status as Any
+                    "id": response?.details?.flag?.id as Any ,
+                    "type": response?.details?.flag?.type as Any,
+                    "description": response?.details?.flag?.description as Any,
+                    "status": response?.details?.flag?.status as Any
                 ],
                 "voice_match": [
-                    "result": response.details?.voiceMatch?.result as Any,
-                    "confidence": response.details?.voiceMatch?.confidence as Any,
-                    "status": response.details?.voiceMatch?.status as Any
+                    "result": response?.details?.voiceMatch?.result as Any,
+                    "confidence": response?.details?.voiceMatch?.confidence as Any,
+                    "status": response?.details?.voiceMatch?.status as Any
                 ]
             ]
         ]
@@ -139,11 +139,11 @@ extension AppDelegate: MindsSDKDelegate {
         print("microphonePermissionNotGranted")
     }
     
-    func onSuccess(_ response: BiometricResponse) {
+    func onSuccess(_ response: BiometricResponse?) {
         self.biometricsReceive(response)
     }
     
-    func onError(_ response: BiometricResponse) {
+    func onError(_ response: BiometricResponse?) {
         self.biometricsReceive(response)
     }
 }
